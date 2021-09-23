@@ -40,3 +40,6 @@ def barplotHormones(p_filin):
     cmd = "./barplotHormones.R %s"%(p_filin)
     runRCMD(cmd)   
 
+def drawResponseCurve(p_filin, hormone):
+    cmd = "./draw_RC.R %s %s"%(p_filin, hormone)
+    runRCMD(cmd)  
