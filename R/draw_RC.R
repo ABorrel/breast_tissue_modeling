@@ -25,10 +25,11 @@ data_summary <- function(data, varname, groupnames){
 args <- commandArgs(TRUE)
 p_response = args[1]
 hormone = args[2]
+pval = as.double(args[3])
 
-#p_response = "/mnt/c/Users/AlexandreBorrel/research/SSI/mixture_breast_cycle/RESULTS/H295R/Responce_curve/ESTRADIOL/50-28-2"
+#p_response = "/mnt/c/Users/AlexandreBorrel/research/SSI/mixture_breast_cycle/RESULTS/H295R/Responce_curve/Estradiol/borderline_active/629-76-5"
 #hormone = "Estradiol"
-
+#pval = 0.05
 
 d_resp = read.csv(p_response, sep = "\t")
 d_resp = as.data.frame(d_resp)
@@ -41,10 +42,12 @@ d_resp$Concentration = log10(d_resp$Concentration)
 d_resp$Response = log10(d_resp$Response)
 d_resp$sd = sd(d_resp$Response)
 
+Anova_pval = rep(paste("pval <", pval), length(d_resp$Response))
+Anova_pval[which(d_resp$Anova <= pval)] = paste("pval >", pval)
 
 ggplot(data = d_resp, aes(x = Concentration, y = Response)) +
-  geom_point() +
-  stat_summary(fun=mean, geom="line", colour="red", size=0.5, shape=4, linetype = "dashed") +
+  geom_point(aes(colour = Anova_pval)) +
+  stat_summary(fun=mean, geom="line", colour="black", size=0.5, shape=4, linetype = "dashed") +
   labs(x = "Log Concentration Chemical (µM)", y = paste("Log Concentration", hormone, "(µM)", sep = " "), 
        title=paste(chemical, " (", basename(p_response) ,")", "\nEfficacy/potency: ", eff_pot, "\nFold change (Kaumas 2012): ", fold_change, sep=""))
   

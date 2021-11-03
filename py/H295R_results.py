@@ -36,6 +36,7 @@ class H295R_results:
         
         # load raw data from haggard
         self.pf_raw_data = pr_Haggard2018 + "Supp3_H295R_master_table_2017-08-08.csv"
+        self.pf_raw_anova = pr_Haggard2018 + "Supp4_OECD_GLOBAL_ANOVA_output_pValues2017-08-09.txt"
 
         # define hormones for the analysis
         self.l_hormones = ["OHPREG", "PROG", "OHPROG", "DOC", "CORTISOL", "X11DCORT", "ANDR", "TESTO", "ESTRONE", "ESTRADIOL"]
@@ -181,11 +182,12 @@ class H295R_results:
         # plot correlation
         runExternal.corHormResponse(p_filout, pr_out)
 
-
     def drawResponseCurve(self, l_hormones):
 
         pr_out = pathFolder.createFolder(self.pr_results + "Responce_curve/")
         l_d_raw = toolbox.loadMatrixToList(self.pf_raw_data, sep = "\t")
+
+        l_d_anova = toolbox.loadMatrixToList(self.pf_raw_anova, sep = "\t")
 
         d_out = {}
         for hormone in l_hormones:
@@ -201,9 +203,18 @@ class H295R_results:
                     d_out[hormone][casrn]["name"] = chnm
                     d_out[hormone][casrn]["concentration"] = []
                     d_out[hormone][casrn]["response"] = []
+                    d_out[hormone][casrn]["anova"] = []
                 
                 d_out[hormone][casrn]["concentration"].append(d_raw["conc"])
                 d_out[hormone][casrn]["response"].append(d_raw["uM"])
+
+                for d_anova in l_d_anova:
+                    if d_anova["casn"] == casrn:
+                        #print("++++++++++++++++")
+                        #print(d_raw["conc"])
+                        #print(d_anova["conc"])
+                        if round(float(d_anova["conc"]), 0) == round(float(d_raw["conc"]), 0):
+                             d_out[hormone][casrn]["anova"].append(d_anova[hormone])
         
         for hormone in d_out.keys():
             pr_byhormone = pathFolder.createFolder(pr_out + hormone + "/")
@@ -223,16 +234,16 @@ class H295R_results:
                 pr_eff_pot = pathFolder.createFolder(pr_byhormone + eff_pot.replace(" ", "_") + "/")
                 p_filout = pr_eff_pot + chem
                 filout = open(p_filout, "w")
-                filout.write("Concentration\tResponse\tchnm\tCR results\tEfficacy/potency\n")
+                filout.write("Concentration\tResponse\tchnm\tCR results\tEfficacy/potency\tAnova\n")
 
                 i = 0
                 imax = len(d_out[hormone][chem]["concentration"])
                 while i < imax:
-                    filout.write("%s\t%s\t%s\t%s\t%s\n"%(d_out[hormone][chem]["concentration"][i], d_out[hormone][chem]["response"][i], d_out[hormone][chem]["name"], fold_change, eff_pot))
+                    filout.write("%s\t%s\t%s\t%s\t%s\t%s\n"%(d_out[hormone][chem]["concentration"][i], d_out[hormone][chem]["response"][i], d_out[hormone][chem]["name"], fold_change, eff_pot, d_out[hormone][chem]["anova"][i]))
                     i = i + 1
                 filout.close()
 
-                runExternal.drawResponseCurve(p_filout, hormone)
+                runExternal.drawResponseCurve(p_filout, hormone, 0.05)
 
 
 
